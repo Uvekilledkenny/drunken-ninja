@@ -1,0 +1,48 @@
+#min_peers = 40
+max_peers = 200
+
+#min_peers_seed = 10
+max_peers_seed = 24
+
+max_uploads = 16
+
+#download_rate = 0
+upload_rate = 0
+
+directory = /rtorrent/downloads
+
+session = /rtorrent/.session
+
+schedule = watch_directory,5,5,load_start=/rtorrent/watch/*.torrent
+schedule = untied_directory,5,5,stop_untied=
+
+schedule = low_diskspace,5,60,close_low_diskspace=1024M
+
+port_range = @PORTS@
+
+check_hash = yes
+
+use_udp_trackers = yes
+
+encryption = allow_incoming,try_outgoing,enable_retry
+
+dht = off
+
+peer_exchange = no
+
+system.file_allocate.set = yes
+
+execute_nothrow = rm,/tmp/rpc.socket
+scgi_local = /tmp/rpc.socket
+schedule = chmod,0,0,"execute=chmod,777,/tmp/rpc.socket"
+
+encoding_list = UTF-8
+
+log.open_file = "rtorrent", /var/log/rtorrent.log
+log.add_output = "debug", "rtorrent"
+
+execute = {sh,-c,/usr/bin/php /usr/share/nginx/html/rutorrent/php/initplugins.php &}
+
+system.method.set_key=event.download.finished,permfix,"execute=chmod —R 777 /rtorrent/downloads"
+system.method.set_key=event.download.finished,filebot_amc,"execute={/root/filebot.sh,$d.get_base_path=,$d.get_name=,$d.get_custom1=}"
+

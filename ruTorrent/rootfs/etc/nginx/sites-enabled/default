@@ -1,0 +1,57 @@
+upstream cakebox {
+  server 127.0.0.1:81 fail_timeout=0;
+}
+
+server {
+	listen 80;
+        listen 443 default ssl;
+
+        ssl_certificate /etc/nginx/ssl/nginx.crt;
+        ssl_certificate_key /etc/nginx/ssl/nginx.key;	
+
+	root /usr/share/nginx/html/rutorrent;
+	index index.html index.php;
+
+	auth_basic "Authentification requise";
+	auth_basic_user_file /rtorrent/.rutorrent/.htpasswd;
+
+	location /cakebox/ {
+        	rewrite ^/cakebox(/.*)$ $1 break;
+        	proxy_pass http://cakebox;
+		proxy_set_header X-Real-IP $remote_addr;
+   		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header Host $http_host;
+    		proxy_redirect off;
+
+    	}
+
+    	location /access/ {
+        	alias /rtorrent/downloads/;
+        	add_header Content-Disposition "attachment";
+        	satisfy any;
+        	allow all;
+	}
+
+	location /RPC2 {
+		include scgi_params;
+		scgi_send_timeout 10s;
+		scgi_read_timeout 10s;
+		scgi_pass  unix:/tmp/rpc.socket;
+	}
+
+	location / {
+		try_files $uri $uri/ /index.html;
+	}
+
+	location ~ \.php$ {
+	        try_files $uri = 404;
+		fastcgi_split_path_info ^(.+\.php)(/.+)$;
+		fastcgi_index index.php;
+		fastcgi_pass unix:/var/run/php5-fpm.sock;
+		fastcgi_param SCRIPT_FILENAME $request_filename;
+		include /etc/nginx/fastcgi_params;
+	        fastcgi_read_timeout 300;
+
+	}
+}
+
