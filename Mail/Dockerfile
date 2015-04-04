@@ -29,7 +29,8 @@ RUN		groupadd -g 5000 vmail && \
 RUN		mkdir -p /etc/opendkim/keys
 
 ADD		/rootfs	/
+RUN		chmod +x /root/*.sh
 
 VOLUME		["/config", "/data"]
 EXPOSE		25  587  993  4190  12301
-CMD		["supervisord", "-n"]
+CMD		["/root/start.sh"]

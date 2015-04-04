@@ -81,3 +81,5 @@ opendkim-genkey -s mail -d $DOMAIN -b 4096
 
 chown opendkim:opendkim mail.private
 chmod 400 mail.private mail.txt
+
+supervisord -n
