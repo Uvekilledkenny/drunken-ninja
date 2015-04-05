@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# Creation de la BDD
-ln -s /data /var/lib/mysql
+ln -s /data/mysql /var/lib/mysql
 mysql_install_db > /dev/null 2>&1
 
 # Lancement de MySQL
@@ -27,10 +26,12 @@ read -p "> Veuillez saisir le nom de domaine : " DOMAIN
 FQDN="${HOSTNAME}.${DOMAIN}"
 
 # Modification du nom d'hôte
-echo $HOSTNAME > /etc/hostname
+echo $HOSTNAME > /config/hostname
+rm -f /etc/hostname
+ln -s /config/hostname /etc/hostname
 
 # Modification du FQDN
-cat > /etc/hosts <<EOF
+cat > /config/hosts <<EOF
 127.0.0.1 localhost.localdomain localhost
 ${WANIP} ${FQDN}               ${HOSTNAME}
 
@@ -41,6 +42,8 @@ ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 ff02::3 ip6-allhosts
 EOF
+rm -f /etc/hosts
+ln -s /config/hosts /etc/hosts
 
 mysqladmin -uroot create postfix
 
@@ -50,15 +53,20 @@ SQLQUERY="CREATE USER 'postfix'@'localhost' IDENTIFIED BY 'postfix'; \
 
 mysql -uroot "postfix" -e "$SQLQUERY" &> /dev/null
 
+mv /etc/postfix/main.cf /config/postfix/main.cf
 sed -i -e "s|\(myhostname.*=\).*|\1 '${FQDN}';|" \
        -e "s|\(myorigin.*=\).*|\1 '${FQDN}';|" \
-       -e "s|\(error_notice_recipient.*=\).*|\1 'admin${DOMAIN}';|" /etc/postfix/main.cf
+       -e "s|\(error_notice_recipient.*=\).*|\1 'admin${DOMAIN}';|" /config/postfix/main.cf
+ln -s /config/postfix/main.cf /etc/postfix/main.cf
 
-mkdir -p /var/mail/vhosts/${DOMAIN}
+mkdir -p /data/mail/vhosts/${DOMAIN}
+ln -s /data/mail/vhosts/${DOMAIN}       /var/mail/vhosts/${DOMAIN}
 
 sed -i -e "s|\(connect.*=\).*|\1 'host=127.0.0.1 dbname=postfix user=postfix password='postfix';|" /etc/dovecot/dovecot-sql.conf.ext
 
-cat > /etc/opendkim/TrustedHosts <<EOF
+mkdir -p /config/opendkim
+
+cat > /config/opendkim/TrustedHosts <<EOF
 127.0.0.1
 localhost
 192.168.0.1/24
@@ -66,18 +74,25 @@ localhost
 *.${DOMAIN}
 EOF
 
-cat > /etc/opendkim/KeyTable <<EOF
+ln -s /config/opendkim/TrustedHosts /etc/opendkim/TrustedHosts
+
+cat > /config/opendkim/KeyTable <<EOF
 mail._domainkey.${DOMAIN} ${DOMAIN}:mail:/etc/opendkim/keys/${DOMAIN}/mail.private
 EOF
 
-cat > /etc/opendkim/SigningTable <<EOF
+ln -s /config/opendkim/KeyTable /etc/opendkim/Keytable
+
+cat > /config/opendkim/SigningTable <<EOF
 *@${DOMAIN} mail._domainkey.${DOMAIN}
 EOF
 
-cd /etc/opendkim/keys
+ln -s /config/openkim/SigningTable /etc/opendkim/KeyTable
 
-mkdir $DOMAIN && cd $DOMAIN
+mkdir -p /config/opendkim/keys/$DOMAIN
+cd /config/opendkim/keys/$DOMAIN
 opendkim-genkey -s mail -d $DOMAIN -b 4096
+
+ln -s /config/opendkim/keys/$DOMAIN /etc/opendkim/keys/$DOMAIN
 
 chown opendkim:opendkim mail.private
 chmod 400 mail.private mail.txt
