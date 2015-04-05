@@ -5,7 +5,7 @@ RUN		apt-get update -qq && \
 		apt-get install -qy --no-install-recommends \
 		postfix mysql-server mysql-client postfix-mysql dovecot-core \
 		dovecot-imapd dovecot-lmtpd dovecot-mysql opendkim opendkim-tools \ 
-		supervisor openssl && \
+		supervisor openssl wget dnsutils && \
 		mkdir -p /config && \
                 rm -rf /var/lib/apt/lists/* && rm -rf /var/lib/mysql && mkdir -p /var/lib/mysql
 

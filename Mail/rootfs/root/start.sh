@@ -1,8 +1,6 @@
 #!/bin/bash
 
-ln -s /data/mysql /var/lib/mysql
 mysql_install_db > /dev/null 2>&1
-
 # Lancement de MySQL
 /usr/bin/mysqld_safe > /dev/null 2>&1 &
 
@@ -27,8 +25,6 @@ FQDN="${HOSTNAME}.${DOMAIN}"
 
 # Modification du nom d'hôte
 echo $HOSTNAME > /config/hostname
-rm -f /etc/hostname
-ln -s /config/hostname /etc/hostname
 
 # Modification du FQDN
 cat > /config/hosts <<EOF
@@ -42,8 +38,6 @@ ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 ff02::3 ip6-allhosts
 EOF
-rm -f /etc/hosts
-ln -s /config/hosts /etc/hosts
 
 mysqladmin -uroot create postfix
 
@@ -52,7 +46,9 @@ SQLQUERY="CREATE USER 'postfix'@'localhost' IDENTIFIED BY 'postfix'; \
           GRANT ALL PRIVILEGES ON postfix.* TO 'postfix'@'localhost';"
 
 mysql -uroot "postfix" -e "$SQLQUERY" &> /dev/null
+mysqladmin -uroot shutdown
 
+mkdir -p /config/postfix
 mv /etc/postfix/main.cf /config/postfix/main.cf
 sed -i -e "s|\(myhostname.*=\).*|\1 '${FQDN}';|" \
        -e "s|\(myorigin.*=\).*|\1 '${FQDN}';|" \
@@ -60,7 +56,8 @@ sed -i -e "s|\(myhostname.*=\).*|\1 '${FQDN}';|" \
 ln -s /config/postfix/main.cf /etc/postfix/main.cf
 
 mkdir -p /data/mail/vhosts/${DOMAIN}
-ln -s /data/mail/vhosts/${DOMAIN}       /var/mail/vhosts/${DOMAIN}
+mkdir -p /var/mail/vhosts
+ln -s /data/mail/vhosts/${DOMAIN} /var/mail/vhosts/${DOMAIN}
 
 sed -i -e "s|\(connect.*=\).*|\1 'host=127.0.0.1 dbname=postfix user=postfix password='postfix';|" /etc/dovecot/dovecot-sql.conf.ext
 
