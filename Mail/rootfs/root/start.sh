@@ -1,9 +1,10 @@
 #!/bin/bash
 
-# Creation de la BDD 
+# Creation de la BDD
 ln -s /data /var/lib/mysql
 mysql_install_db > /dev/null 2>&1
 
+# Lancement de MySQL
 /usr/bin/mysqld_safe > /dev/null 2>&1 &
 
 RET=1
@@ -53,10 +54,9 @@ sed -i -e "s|\(myhostname.*=\).*|\1 '${FQDN}';|" \
        -e "s|\(myorigin.*=\).*|\1 '${FQDN}';|" \
        -e "s|\(error_notice_recipient.*=\).*|\1 'admin${DOMAIN}';|" /etc/postfix/main.cf
 
-
 mkdir -p /var/mail/vhosts/${DOMAIN}
 
-sed -i -e "s|\(connect.*=\).*|\1 'host=127.0.0.1 dbname=postfix user=postfix password='postfix';|"
+sed -i -e "s|\(connect.*=\).*|\1 'host=127.0.0.1 dbname=postfix user=postfix password='postfix';|" /etc/dovecot/dovecot-sql.conf.ext
 
 cat > /etc/opendkim/TrustedHosts <<EOF
 127.0.0.1
