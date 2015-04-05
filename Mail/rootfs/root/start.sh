@@ -80,13 +80,13 @@ cat > /config/opendkim/KeyTable <<EOF
 mail._domainkey.${DOMAIN} ${DOMAIN}:mail:/etc/opendkim/keys/${DOMAIN}/mail.private
 EOF
 
-ln -s /config/opendkim/KeyTable /etc/opendkim/Keytable
+ln -s /config/opendkim/KeyTable /etc/opendkim/KeyTable
 
 cat > /config/opendkim/SigningTable <<EOF
 *@${DOMAIN} mail._domainkey.${DOMAIN}
 EOF
 
-ln -s /config/openkim/SigningTable /etc/opendkim/KeyTable
+ln -s /config/openkim/SigningTable /etc/opendkim/SigningTable
 
 mkdir -p /config/opendkim/keys/$DOMAIN
 cd /config/opendkim/keys/$DOMAIN
