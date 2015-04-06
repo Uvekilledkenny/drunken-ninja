@@ -4,10 +4,10 @@ ENV 		GATEONE_REPO_URL https://github.com/liftoff/GateOne.git
 ENV 		DEBIAN_FRONTEND noninteractive
 
 RUN 		apt-get update -qq && \
- 		apt-get install -qy \
+ 		apt-get install -qy --no-install-recommends \
 		python-pip python-imaging python-setuptools \
     		python-mutagen python-pam python-dev git \
-    		telnet openssh-client 
+    		telnet openssh-client gcc
 
 RUN 		pip install --upgrade futures tornado cssmin slimit psutil
 
