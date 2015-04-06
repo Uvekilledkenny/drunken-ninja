@@ -1,7 +1,7 @@
 FROM		debian:jessie
 
+ENV             DEBIAN_FRONTEND noninteractive
 ENV 		GATEONE_REPO_URL https://github.com/liftoff/GateOne.git
-ENV 		DEBIAN_FRONTEND noninteractive
 
 RUN 		apt-get update -qq && \
  		apt-get install -qy --no-install-recommends \
