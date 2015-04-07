@@ -1,32 +1,24 @@
 FROM		debian:jessie
 
 ENV             DEBIAN_FRONTEND noninteractive
-ENV 		GATEONE_REPO_URL https://github.com/liftoff/GateOne.git
 
 RUN 		apt-get update -qq && \
  		apt-get install -qy --no-install-recommends \
-		python-pip python-imaging python-setuptools \
-    		python-mutagen python-pam python-dev git \
-    		telnet openssh-client gcc
+ 		python python-openssl wget telnet python-pam \ 
+		python-kerberos python-imaging dtach openssh-client \
+		python-support python-pip gcc python-dev
 
-RUN 		pip install --upgrade futures tornado cssmin slimit psutil
+RUN		pip install tornado==2.4.1
 
-RUN 		mkdir -p /gateone/logs && \
-    		mkdir -p /gateone/users && \
-    		mkdir -p /etc/gateone/conf.d && \
-    		mkdir -p /etc/gateone/ssl && \
-    		cd /gateone && \
-    		git clone $GATEONE_REPO_URL && \
-    		cd GateOne && \
-    		python setup.py install && \
-    		cp docker/update_and_run_gateone.py /usr/local/bin/update_and_run_gateone && \
-    		cp docker/60docker.conf /etc/gateone/conf.d/60docker.conf
+WORKDIR		/tmp
 
-RUN 		/usr/local/bin/gateone --configure \
-    		--log_file_prefix="/gateone/logs/gateone.log"
+RUN		(wget -qO- https://github.com/downloads/liftoff/GateOne/gateone-1.1.tar.gz --no-check-certificate | tar -zxvf -) && \
+		cd GateOne/ && \
+		python setup.py install && \
+		rm -rf /tmp/*
 
-RUN		rm -f /etc/gateone/ssl/key.pem && \
-    		rm -f /etc/gateone/ssl/certificate.pem
+WORKDIR 	/opt/gateone
 
-EXPOSE 		8000
-CMD 		["/usr/local/bin/update_and_run_gateone", "--log_file_prefix=/gateone/logs/gateone.log"]
+EXPOSE		8080
+ENTRYPOINT	["python", "/opt/gateone/gateone.py", "--port=8080", "--disable_ssl"]
+
