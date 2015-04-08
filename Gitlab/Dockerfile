@@ -1,28 +1,27 @@
-FROM		debian:jessie
-ENV		DEBIAN_FRONTEND noninteractive
-ENV		VER_GITLAB 7.9.2
+FROM 		debian:jessie
 
-RUN 		apt-get update -q && \
-     		apt-get install -qy --no-install-recommends \
-     	 	ca-certificates openssh-server wget
+RUN 		apt-get update -qq \
+ &&		apt-get install -qy --no-install-recommends \ 
+		supervisor logrotate locales nginx \
+		openssh-server postgresql-client redis-tools \ 
+    	   	git-core ruby2.1 python2.7 python-docutils \
+ 	      	nodejs libpq5 zlib1g libyaml-0-2 libssl1.0.0 \
+      		libgdbm3 libreadline6 libncurses5 libffi6 \
+ 	     	libxml2 libxslt1.1 libcurl3 libicu52 \
+ && 		update-locale LANG=C.UTF-8 LC_MESSAGES=POSIX \
+ && 		locale-gen fr_FR.UTF-8 \
+ && 		dpkg-reconfigure locales \
+ && 		gem install --no-document bundler \
+ && 		rm -rf /var/lib/apt/lists/*
 
-WORKDIR		/tmp
+ADD		rootfs	/
 
-RUN		wget https://downloads-packages.s3.amazonaws.com/ubuntu-14.04/gitlab_$VER_GITLAB-omnibus-1_amd64.deb && \
-		dpkg -i git* && \
-		rm -rf /tmp/git*		
+RUN 		chmod +x /app/setup/install \
+ && 		/app/setup/install \
+ && 		chmod +x /app/init \
 
-RUN 		mkdir -p /opt/gitlab/sv/sshd/supervise && \
-    		mkfifo /opt/gitlab/sv/sshd/supervise/ok && \
-     		printf "#!/bin/sh\nexec 2>&1\numask 077\nexec /usr/sbin/sshd -D" > /opt/gitlab/sv/sshd/run && \
-     		chmod a+x /opt/gitlab/sv/sshd/run && \
-     		ln -s /opt/gitlab/sv/sshd /opt/gitlab/service && \
-     		mkdir -p /var/run/sshd
+WORKDIR		/home/git/gitlab
 
-ADD		/rootfs	/
-
-RUN		chmod +x /root/*.sh
-
-EXPOSE 		80 22
-VOLUME 		["/var/opt/gitlab", "/var/log/gitlab", "/etc/gitlab"]
-CMD 		["/root/start.sh"]
+EXPOSE 		22 80 443
+VOLUME 		["/home/git/data"]
+CMD 		["/app/init", "app:start"]
