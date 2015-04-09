@@ -120,7 +120,7 @@ DB_NAME=${DB_NAME:-${POSTGRESQL_ENV_DB_NAME}}
 
 
 ## Adapt uid and gid for git:git
-USERMAP_ORIG_UID=$(id sudo -u git)
+USERMAP_ORIG_UID=$(id -u git)
 USERMAP_ORIG_GID=$(id -g git)
 USERMAP_GID=${USERMAP_GID:-${USERMAP_UID:-$USERMAP_ORIG_GID}}
 USERMAP_UID=${USERMAP_UID:-$USERMAP_ORIG_UID}
@@ -658,7 +658,7 @@ appStart () {
 
     # recreate the tmp directory
     rm -rf ${GITLAB_DATA_DIR}/tmp
-     sudo -u git -H mkdir -p ${GITLAB_DATA_DIR}/tmp/
+    sudo -u git -H mkdir -p ${GITLAB_DATA_DIR}/tmp/
     chmod -R u+rwX ${GITLAB_DATA_DIR}/tmp/
 
     # create the tmp/cache and tmp/public/assets directory
