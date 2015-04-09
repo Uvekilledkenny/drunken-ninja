@@ -1,8 +1,7 @@
-
 FROM 		debian:jessie
 
 RUN 		apt-get update -q \
- &&		apt-get install -qy --no-install-recommends redis-server \
+ &&		apt-get install -qy --no-install-recommends redis-server sudo \
  &&		rm -rf /var/lib/apt/lists/*
 
 RUN 		sed 's/^daemonize yes/daemonize no/' -i /etc/redis/redis.conf \
